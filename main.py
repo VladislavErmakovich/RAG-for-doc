@@ -1,5 +1,7 @@
 import time 
 from typing import List, Optional
+import psutil
+import os
 
 from vdb import Vector_Data_Base
 from LLM import LLMEngine
@@ -17,13 +19,25 @@ class Question(BaseModel):
 
 class Source(BaseModel):
     page: int
+    section: str
     score: float
     text: str 
+
+class Stats(BaseModel):
+    total_time: float
+    generate_time: float
+    token_cnt: int
+    speed_tps: float
+    ram_stat_gb: float
 
 class Answer(BaseModel):
     text: str
     source: List[Source]
-    time: float
+    stats: Stats
+
+def get_ram_statistic():
+    process = psutil.Process(os.getpid())
+    return round(process.memory_info().rss / (1024 ** 3), 2)
 
 vector_db : Optional[Vector_Data_Base] = None
 model: Optional[LLMEngine] = None
@@ -34,12 +48,18 @@ async def life_cycle_app(app: FastAPI):
 
     print("Запуск работы сервиса...")
 
+    ram_before = get_ram_statistic() # до загрузки
+    print(f"RAM до загрузки: {ram_before} GB")
+
     global vector_db, model
 
     model = LLMEngine()
 
     vector_db = Vector_Data_Base()
     vector_db.prepare_and_load_data(flag_rebuild=True)
+
+    ram_after = get_ram_statistic()
+    print(f"RAM после загрузки: {ram_after} GB")
 
     yield
 
@@ -61,7 +81,7 @@ async def ask_question(request: Question):
     if not vector_db and not model:
         raise HTTPException(status_code='503', detail='Сервис не доступен, нет подключения VectorDB или LLM')
     
-    strat_time = time()
+    start_total_time = time.time()
 
     res_search_data = vector_db.search(request.questtion, n_results=3)
 
@@ -69,32 +89,45 @@ async def ask_question(request: Question):
     sources = []
 
     for items in res_search_data :
-        context += f"Фрагемент: Страница {items['page']} | Вес: {items['score']} \n"
+        context += f"Фрагемент: Страница {items['page']} | Вес: {items['score']} | Раздел {items['section']} \n"
         context += f"{items['text']}\n\n"
 
         sources.append(Source(
             page = items['page'],
+            section= items['section'],
             score = items['score'],
             text=items['text']
         ))
 
-
+    start_gen_time = time.time()
     response = model.generate_response(quastion=request, context=context)
+    end_gen_time = time.time()
 
-    full_time = round(time() - strat_time, 2)
+    gen_time = end_gen_time - start_gen_time
+
+    tokens = response['completion_tokens']
+    tps = round(tokens / gen_time, 2) if gen_time > 0 else 0.0
+
+    total_time = end_gen_time - start_total_time
+    #full_time = round(time.time() - strat_time, 2)
+
+    stats = Stats(
+        total_time=round(total_time, 2),
+        generate_time= round(gen_time, 2),
+        token_cnt= tokens,
+        speed_tps= tps,
+        ram_stat_gb=get_ram_statistic()
+    )
 
     return Answer(
-        text = response,
+        text = response['answer'],
         source = sources,
-        time = full_time)
+        stats= stats)
 
 
 @app.get('/health')
 def health_chek():
     return {'status': ' ok', 'model': model is not None}
-
-
-
 
 if __name__ == "__main__":
     uvicorn.run(

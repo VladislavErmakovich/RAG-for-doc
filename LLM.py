@@ -5,8 +5,9 @@ from huggingface_hub import hf_hub_download
 
 
 
-model_path = 'model/qwen2.5-7b-instruct-q4_k_m.gguf'
-n_threads = max(1, multiprocessing.cpu_count()-3)
+model_path = 'model/qwen2.5-7b-instruct-q4_k_m.gguf' #  qwen2.5-7b-instruct-q4_k_m.gguf Qwen2.5-3B-Instruct-Q4_K_M.gguf
+n_threads = max(1, multiprocessing.cpu_count()-2)
+#n_threads = 6
 
 system_prompt = """Ты технический специалист, который отвечает на вопросы касаемо дуокументации.
                     Твоя главная задача  - отвечать на вопросы ТОЛЬКО с использованием контекста.
@@ -24,6 +25,7 @@ class LLMEngine():
             n_ctx=2048,
             n_threads=n_threads,
             n_batch=512,
+            flash_attn=True,
             n_gpu_layers=0,
             verbose=False
         )
@@ -36,8 +38,8 @@ class LLMEngine():
             os.makedirs('model', exist_ok=True)
 
             hf_hub_download(
-                repo_id="paultimothymooney/Qwen2.5-7B-Instruct-Q4_K_M-GGUF",
-                filename="qwen2.5-7b-instruct-q4_k_m.gguf",
+                repo_id="bartowski/Qwen2.5-3B-Instruct-GGUF", # paultimothymooney/Qwen2.5-7B-Instruct-Q4_K_M-GGUF
+                filename="Qwen2.5-3B-Instruct-Q4_K_M.gguf",
                 local_dir="./model",
                 local_dir_use_symlinks=False)
             
@@ -67,21 +69,25 @@ class LLMEngine():
         )
 
         answer = response['choices'][0]['message']['content']
-        return answer.strip()
+        statistic = response['usage']
+
+        return {"answer": answer,
+                 "completion_tokens": statistic["completion_tokens"],
+                 "prompt_tokens": statistic["prompt_tokens"]}
 
 
 
-if __name__ == "__main__":
-    engine = LLMEngine()
+# if __name__ == "__main__":
+#     engine = LLMEngine()
     
-    # Эмуляция RAG (как будто мы нашли это в базе)
-    fake_context = """
-    Раздел: Технические параметры.
-    Температура FCBU: 420K.
-    Энергопотребление: 1.21 ГВт.
-    """
+#     # Эмуляция RAG (как будто мы нашли это в базе)
+#     fake_context = """
+#     Раздел: Технические параметры.
+#     Температура FCBU: 420K.
+#     Энергопотребление: 1.21 ГВт.
+#     """
     
-    q = "Какая температура у FCBU?"
-    print(f"\n❓ Вопрос: {q}")
-    ans = engine.generate_response(q, fake_context)
-    print(f"🤖 Ответ: {ans}")
+#     q = "Какая температура у FCBU?"
+#     print(f"\n❓ Вопрос: {q}")
+#     ans = engine.generate_response(q, fake_context)
+#     print(f"🤖 Ответ: {ans}")
