@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  rag-service:
+    build: .
+    container_name: chimera_rag
+    ports:
+      - "8000:8000"  
+    volumes:
+      - ./model:/app/model
+      - ./data:/app/data
+      
+    environment:
+      - PYTHONUNBUFFERED=1 
+    deploy:
+      resources:
+        limits:
+          memory: 8G  
+        reservations:
+          memory: 4G
+    restart: unless-stopped
