@@ -129,15 +129,3 @@ class Vector_Data_Base():
     
 
 
-if __name__ == "__main__":
-    db = Vector_Data_Base()
-    db.prepare_and_load_data(flag_rebuild=False)
-    
-    print("\n🔍 Тестовый поиск 'ошибка 666':")
-    res = db.search("Что делать при ошибке 666?")
-    for item in res:
-        print(f"[Стр. {item['page']} | Вес: {item['score']}] {item['text'][:50]}...")
-        print(type(item['score']))
-    #db.view_data()
-
-

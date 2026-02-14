@@ -75,19 +75,3 @@ class LLMEngine():
                  "completion_tokens": statistic["completion_tokens"],
                  "prompt_tokens": statistic["prompt_tokens"]}
 
-
-
-# if __name__ == "__main__":
-#     engine = LLMEngine()
-    
-#     # Эмуляция RAG (как будто мы нашли это в базе)
-#     fake_context = """
-#     Раздел: Технические параметры.
-#     Температура FCBU: 420K.
-#     Энергопотребление: 1.21 ГВт.
-#     """
-    
-#     q = "Какая температура у FCBU?"
-#     print(f"\n❓ Вопрос: {q}")
-#     ans = engine.generate_response(q, fake_context)
-#     print(f"🤖 Ответ: {ans}")
