@@ -6,10 +6,22 @@ import pymupdf4llm
 from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 
 class Vector_Data_Base():
+
+    """
+    Класс векторной баззы данных
+    """
+
     def __init__(self,
                  path_pdf = 'manual.pdf',
                  path_db = "./data/chroma_db", 
                  collection_name = 'manual_doc'):
+        
+        """
+        Инициализация:
+        path_pdf - файл для разбиения в БД (str)
+        path_db - путь, где будет лежать БД (str)
+        collection_name - название коллекции (str)
+        """
         
         self.path_pdf = path_pdf
         self.path_db = path_db
@@ -29,6 +41,11 @@ class Vector_Data_Base():
         )
 
     def prepare_and_load_data(self, flag_rebuild= False):
+
+        """
+        Подготовка и загрузка данных:
+        flag_rebuild - флаг о пересоздании БД (bool)
+        """
         
         if flag_rebuild ==False and self.collection.count() > 0:
             print("База данных существует")
@@ -91,7 +108,13 @@ class Vector_Data_Base():
                 )
             
        
-    def search(self, querry, n_results = 2):
+    def search(self, querry, n_results = 3):
+         
+         """
+         Подготовка и загрузка данных:
+         querry - вопрос (str)
+         n_results - результат поиска, количество (int)
+         """
 
          results = self.collection.query(
               query_texts=[querry],
@@ -121,6 +144,12 @@ class Vector_Data_Base():
          return structured_results
     
     def view_data(self, limit = 10):
+         
+         """
+         Вывод данных:
+         limit - сколько будет выводиться ячеек (int)
+         """
+
          data = self.collection.peek(limit=limit)
 
          for i in range(len(data['ids'])):

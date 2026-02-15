@@ -15,15 +15,30 @@ import uvicorn
 
 
 class Question(BaseModel):
+
+    """
+    Класс для вопроса
+    """
+
     questtion: str
 
 class Source(BaseModel):
+
+    """
+    Класс для вывода информации от базы данных
+    """
+
     page: int
     section: str
     score: float
     text: str 
 
 class Stats(BaseModel):
+
+    """
+    Класс для статистики
+    """
+
     total_time: float
     generate_time: float
     token_cnt: int
@@ -31,11 +46,21 @@ class Stats(BaseModel):
     ram_stat_gb: float
 
 class Answer(BaseModel):
+
+    """
+    Класс для ответа
+    """
+
     text: str
     source: List[Source]
     stats: Stats
 
 def get_ram_statistic():
+
+    """
+    Функция для получения статистики о RAM
+    """
+
     process = psutil.Process(os.getpid())
     return round(process.memory_info().rss / (1024 ** 3), 2)
 
@@ -45,6 +70,10 @@ model: Optional[LLMEngine] = None
 
 @asynccontextmanager
 async def life_cycle_app(app: FastAPI):
+
+    """
+    Функция жизненного цикла самого проекта
+    """
 
     print("Запуск работы сервиса...")
 
@@ -78,6 +107,11 @@ app = FastAPI(
 
 @app.post('/ask', response_model=Answer)
 async def ask_question(request: Question):
+
+    """
+    Функция получения ответа
+    """
+
     if not vector_db and not model:
         raise HTTPException(status_code='503', detail='Сервис не доступен, нет подключения VectorDB или LLM')
     
@@ -109,7 +143,6 @@ async def ask_question(request: Question):
     tps = round(tokens / gen_time, 2) if gen_time > 0 else 0.0
 
     total_time = end_gen_time - start_total_time
-    #full_time = round(time.time() - strat_time, 2)
 
     stats = Stats(
         total_time=round(total_time, 2),
@@ -127,6 +160,11 @@ async def ask_question(request: Question):
 
 @app.get('/health')
 def health_chek():
+
+    """
+    Функция проверки статуса
+    """
+
     return {'status': ' ok', 'model': model is not None}
 
 if __name__ == "__main__":

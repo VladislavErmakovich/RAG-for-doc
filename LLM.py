@@ -5,18 +5,29 @@ from huggingface_hub import hf_hub_download
 
 
 
-model_path = 'model/qwen2.5-7b-instruct-q4_k_m.gguf' #  qwen2.5-7b-instruct-q4_k_m.gguf Qwen2.5-3B-Instruct-Q4_K_M.gguf
+model_path = 'Qwen2.5-3B-Instruct-Q4_K_M.gguf' #  qwen2.5-7b-instruct-q4_k_m.gguf Qwen2.5-3B-Instruct-Q4_K_M.gguf
 n_threads = max(1, multiprocessing.cpu_count()-2)
 #n_threads = 6
 
 system_prompt = """Ты технический специалист, который отвечает на вопросы касаемо дуокументации.
                     Твоя главная задача  - отвечать на вопросы ТОЛЬКО с использованием контекста.
                     Если в контексте нет информации для ответа, то ты отвечаешь : "В документации отсутствует информация о вашем запросе."
-                    НЕ придумывай факты для ответа. НЕ используй свои знания, которых нет в контексте. Давай ответы на русском языке
+                    НЕ придумывай факты для ответа. НЕ используй свои знания, которых нет в контексте. Давай ответы на русском языке.
                 """
 
 class LLMEngine():
+
+    """
+    Класс LLM
+    """
+
     def __init__(self):
+
+        """
+        Инициализация:
+        model_path - путь модели
+        n_threads - количество потоков, которые пойдут на LLM
+        """
 
         self._ensure_model_exists()
 
@@ -31,6 +42,10 @@ class LLMEngine():
         )
 
     def _ensure_model_exists(self):
+
+        """
+        Private метод: скачивание модели если нет ее
+        """
 
         if not os.path.exists(model_path):
             print('Модель не найдена')
@@ -49,6 +64,13 @@ class LLMEngine():
             print('Модель найдена')
 
     def generate_response(self,  quastion, context):
+
+        """
+        Генерация ответа:
+        quastion - вопрос от впользователя 
+        context - контекс от БД
+        """
+
         user_content = f"""
                         Контекс (Из документации - manual.pdf):
                         {context}
