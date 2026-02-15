@@ -54,7 +54,7 @@ class LLMEngine():
 
             hf_hub_download(
                 repo_id="paultimothymooney/Qwen2.5-7B-Instruct-Q4_K_M-GGUF", # paultimothymooney/Qwen2.5-7B-Instruct-Q4_K_M-GGUF  bartowski/Qwen2.5-3B-Instruct-GGUF
-                filename="qwen2.5-7b-instruct-q4_k_m.gguf",
+                filename="Qwen2.5-7B-Instruct-Q4_K_M-GGUF",
                 local_dir="./model",
                 local_dir_use_symlinks=False)
             
